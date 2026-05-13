@@ -60,3 +60,10 @@ ffmpeg 采用 LGPL 许可。
 
 - [QwenLM/Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) — ASR 模型
 - [snakers4/silero-vad](https://github.com/snakers4/silero-vad) — VAD 模型
+
+## 开发者与工具
+
+- **项目主导**：Nikoleta
+- **开发辅助与代码审核**：Claude Opus 4.7（Anthropic）
+- **代码生成工具**：[Hmbown / DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI)
+- **代码生成模型**：DeepSeek-V4-Pro

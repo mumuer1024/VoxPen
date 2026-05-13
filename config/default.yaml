@@ -24,8 +24,7 @@ vad:
   overlap: 0.3                               # 段边界前后各扩展 overlap/2 秒，形成人为重叠区（供 Phase 2.6 使用）
 
 pipeline:
-  queue_size: 4                              # 生产者-消费者队列容量
-  retry_times: 3                             # 单段推理失败自动重试次数
+  retry_times: 3                             # 单段推理失败自动重试次数（不含 OOM，详见 PRD §2.8 + §4.3.2）
 
 output:
   formats: ["txt", "srt", "md"]             # 输出格式：txt / srt / md

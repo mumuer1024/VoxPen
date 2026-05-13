@@ -110,7 +110,24 @@ class Transcriber:
 
         try:
             self._model = Qwen3ASRModel.from_pretrained(asr_path, **kwargs)
+        except torch.cuda.OutOfMemoryError as e:
+            # 加载 OOM：清理状态，抛带诊断信息的异常
+            self._model = None
+            self._has_aligner = False
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
+            vram_gb = torch.cuda.memory_allocated() / 1e9 if torch.cuda.is_available() else 0
+            raise TranscriberOOMError(
+                f"模型加载 OOM (with_aligner={with_aligner}): 已分配 {vram_gb:.2f}GB"
+            ) from e
         except Exception as e:
+            # 其他加载失败：清理状态，包成 RuntimeError
+            self._model = None
+            self._has_aligner = False
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+            gc.collect()
             raise RuntimeError(f"模型加载失败: {e}") from e
 
         elapsed = time.perf_counter() - t0
@@ -227,6 +244,10 @@ class Transcriber:
             if not (p / "config.json").exists():
                 raise FileNotFoundError(f"{label} 模型路径无效（缺少 config.json）: {p}")
             return str(p)
+        if not remote or not str(remote).strip():
+            raise ValueError(
+                f"{label} 模型未配置：asr_local_path 和 asr_model_id 均为空"
+            )
         return str(remote)
 
     @staticmethod

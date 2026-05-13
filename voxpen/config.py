@@ -119,17 +119,11 @@ class VADConfig(BaseModel):
 class PipelineConfig(BaseModel):
     """流水线执行参数"""
 
-    queue_size: int = Field(
-        default=4,
-        ge=1,
-        le=20,
-        description="生产者-消费者队列容量",
-    )
     retry_times: int = Field(
         default=3,
         ge=0,
         le=10,
-        description="单段推理失败自动重试次数",
+        description="单段推理失败自动重试次数（不含 OOM）",
     )
 
 

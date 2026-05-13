@@ -5,7 +5,7 @@
 
 ---
 
-## Phase 1：项目骨架与基础设施 ✅ 当前
+## Phase 1：项目骨架与基础设施 ✅ 完成
 
 ### 1.1 目录结构
 ```
@@ -26,8 +26,8 @@ VoxPen/
 │   │   └── silero.py             # Silero VAD 封装
 │   ├── asr/
 │   │   ├── __init__.py
-│   │   ├── model_loader.py       # 单例模型加载
-│   │   ├── transcriber.py        # Qwen3-ASR 推理适配器
+│   │   ├── types.py              # NotLoadedError / TranscriberOOMError
+│   │   ├── transcriber.py        # 模型加载/卸载/推理（load/unload/is_loaded/has_aligner/transcribe）
 │   │   └── downloader.py         # 多源模型下载
 │   ├── aligner/
 │   │   ├── __init__.py
@@ -36,10 +36,6 @@ VoxPen/
 │   │   ├── __init__.py
 │   │   ├── merger.py             # 段间拼接、重叠去重
 │   │   └── formatter.py          # txt/srt/md 输出
-│   ├── worker/
-│   │   ├── __init__.py
-│   │   ├── queue.py              # 生产者-消费者
-│   │   └── task.py               # 任务状态机
 │   ├── ui/
 │   │   ├── __init__.py
 │   │   ├── gradio_app.py         # 界面主入口
@@ -81,28 +77,41 @@ VoxPen/
 
 ---
 
-## Phase 2.0：接口契约验证（前置必做）
-- 编写 `scripts/verify_qwen_asr_contract.py`
-- 实际调用 Qwen3ASRModel，打印参数和返回值结构
-- 输出保存为 `references/qwen_asr_actual_api.txt`
-
----
-
 ## Phase 2：核心处理模块
-- 2.1 音频提取 → 16kHz 单声道 WAV
-- 2.2 媒体探测
-- 2.3 VAD 封装（两套时间戳：vad 原始 + feed 扩展）
-- 2.4 ASR 推理适配器（context/language 参数以 Phase 2.0 为准）
-- 2.5 模型下载（多源）
-- 2.6 段合并（LCS 去重）
-- 2.7 格式化输出（txt/srt/md）
+
+### Phase 2.0：基础组件 ✅ 完成
+- `media/extractor.py`：视频/音频 → 16kHz 单声道 WAV
+- `vad/silero_vad.py`：Silero VAD 封装（pip 包，非 torch.hub）
+- `vad/segmenter.py`：段后处理「不丢任何 VAD 段」策略（合并→救援→切分→兜底过滤）
+
+### Phase 2.1：ASR 接口契约勘探与最小推理验证 ✅ 完成
+- 阅读 `references/qwen_asr_installed/` 真实源码，输出 `references/qwen3_asr_actual_api.md`
+- `scripts/test_qwen3_asr_minimal.py`：30s wav 单段推理验证
+- 实测：bf16 加载 3.2s，推理 3.4s/30s 段（RTF 0.11），显存峰值 4.03 GB
+
+### Phase 2.2：Transcriber 模块封装 ✅ 完成
+- `voxpen/asr/transcriber.py`：load / unload / is_loaded / has_aligner / transcribe 完整生命周期
+- `voxpen/asr/types.py`：NotLoadedError / TranscriberOOMError 异常体系
+- 用户显式管理生命周期（不做单例/自动重载）；OOM 直接报错附诊断（不自动降级）
+- `tests/test_transcriber.py`：待用户在 venv 跑 pytest
+
+### Phase 2.3：顺序流水线 ⏳ 待开始
+- `voxpen/pipeline.py`：VAD 段切片 + Transcriber 调用 + 重试 + 错误段标记 + 进度回调 + 取消信号
+- 输入：16kHz wav ndarray + 配置；输出：`List[TranscribedSegment]`
+- 不接 extractor（UI 层组合）、不做生产者-消费者并行（PRD v1.3 §2.5）
+
+### Phase 2.4：后处理 ⏳ 待开始
+- `postproc/merger.py`：段间拼接、重叠去重（LCS）
+- `postproc/formatter.py`：txt / srt / md 输出
+
+### Phase 2.5：模型下载 ⏳ 待开始
+- `asr/downloader.py`：多源下载（HF / hf-mirror / ModelScope / 本地 / 自定义）
 
 ---
 
-## Phase 3：流水线编排
-- 3.1 任务状态机（threading.Event 取消）
-- 3.2 生产者-消费者队列（CPU VAD / GPU 转录）
-- 3.3 主流水线编排 + 回调钩子
+## Phase 3：流水线编排 → 已合并到 Phase 2.3
+
+（原 Phase 3 内容已合并到 Phase 2.3——顺序流水线 + 取消 + 回调一次到位，详见 PRD v1.3 §2.5。）
 
 ---
 
@@ -141,7 +150,7 @@ VoxPen/
 | 不重写推理 | `transcriber.py` 适配 `qwen_asr.Qwen3ASRModel`，非替代 |
 | VAD 优先级 | Silero VAD 在语义边界切分，优于库内固定时长切分 |
 | 两套时间戳 | VAD 原始 + feed 扩展，LCS 去重针对人为重叠区 |
-| 单例模型 | 延迟加载，首次推理时才初始化，常驻显存 |
+| 用户显式 load/unload | 不做单例/自动重载，模型加载由用户在 UI 上点击触发（PRD v1.3 §4.3.1） |
 | 取消机制 | `threading.Event`，3 秒内响应 |
 | 复用已有环境 | Launcher 每步检测已装组件，支持指定已有模型路径 |
 
