@@ -1,0 +1,80 @@
+# VoxPen — Python 依赖
+# 基于 references/working_requirements.txt 中用户实际跑通的版本清单。
+# 注释 #working 表示该版本已在用户环境中验证通过。
+
+# ⚠️ 重要：torch 不在 requirements.txt 中声明，必须单独安装
+# 用户基准环境为 RTX 5060 Ti (Blackwell)，需要 CUDA 12.8+
+# 安装命令（参考已跑通环境 torch 2.12.0.dev+cu128）：
+#   pip install --pre torch torchvision torchaudio \
+#     --index-url https://download.pytorch.org/whl/nightly/cu128
+# 老显卡（CUDA 12.1）可用稳定版：
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+# ============================================================
+# 深度学习核心（版本号来自 working_requirements.txt）
+# ============================================================
+transformers>=4.57.0         # working: 4.57.6
+accelerate>=1.12.0           # working: 1.12.0
+
+# ============================================================
+# Qwen3-ASR（已验证的推理接口）
+# ============================================================
+qwen-asr>=0.0.6              # working: 0.0.6（最重要依赖，接口以此版本为准）
+qwen-omni-utils>=0.0.9       # working: 0.0.9
+
+# ============================================================
+# 音频处理
+# ============================================================
+librosa>=0.11.0              # working: 0.11.0
+soundfile>=0.13.0            # working: 0.13.1
+numpy>=2.0                   # 若 librosa/其他依赖冲突，可降级到 numpy>=1.24,<2.0；working: 2.2.6
+silero-vad>=5.1              # VAD 语音活动检测（通过 torch.hub 或 pip 包）
+
+# ============================================================
+# Gradio UI（Phase 4 开发必须使用 Gradio 6.x API）
+# ============================================================
+gradio>=6.14.0               # working: 6.14.0
+
+# ============================================================
+# 配置与工具
+# ============================================================
+pydantic>=2.0                # working: 2.13.4；配置校验
+PyYAML>=6.0                  # working: 6.0.3；YAML 解析
+tqdm>=4.0                    # working: 4.67.3；进度条
+
+# ============================================================
+# 模型下载
+# ============================================================
+huggingface_hub>=0.36.0      # working: 0.36.2
+modelscope>=1.36.0           # working: 1.36.3；魔搭社区下载源
+
+# ============================================================
+# Launcher 启动器（PySide6 + 打包）
+# ============================================================
+PySide6>=6.5.0               # 桌面 GUI 启动器
+# 仅 Launcher 打包时需要，运行 VoxPen 主程序不需要
+pyinstaller>=6.0              # PyInstaller 打包工具
+
+# ============================================================
+# 开发 / 测试
+# ============================================================
+pytest>=8.0
+pytest-mock>=3.0
+
+# ============================================================
+# 以下为 working_requirements.txt 中的间接依赖（供参考）
+# 安装上述包时会自动拉取，无需显式声明：
+#   tokenizers, safetensors, fsspec, filelock, huggingface_hub,
+#   Pillow, requests, urllib3, certifi, charset-normalizer,
+#   Jinja2, MarkupSafe, packaging, platformdirs, typing_extensions,
+#   annotated-types, pydantic_core, rich, markdown-it-py, mdurl,
+#   uvicorn, starlette, fastapi, h11, httpcore, httpx, anyio, idna,
+#   scipy, scikit-learn, joblib, threadpoolctl, networkx, audioread,
+#   lazy-loader, pooch, decorator, Cython, numba, llvmlite, soxr,
+#   pandas, python-dateutil, pytz, six, tzdata,
+#   click, typer, shellingham, colorama, blinker, brotli,
+#   hf-gradio, orjson, av, cffi, pycparser, groovy, nagisa,
+#   sympy, mpmath, dyNET38, msgpack, pydub, Flask, Werkzeug,
+#   itsdangerous, python-multipart, regex, semantic-version, sox,
+#   soynlp, tomlkit, safehttpx, psutil
+# ============================================================

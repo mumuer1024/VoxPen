@@ -1,0 +1,39 @@
+# VoxPen 默认配置文件
+# 所有参数均可通过 Gradio 界面的"高级设置"覆盖。
+
+model:
+  # ── 模型路径（local_path 不为空时优先使用本地路径）──
+  asr_model_id: "Qwen/Qwen3-ASR-1.7B"       # HuggingFace 模型 ID（注意：非 Qwen3-ASR-Flash API 服务名）
+  aligner_model_id: "Qwen/Qwen3-ForcedAligner-0.6B"
+  asr_local_path: "C:/Users/mumuer/qwen-asr/Qwen3-ASR-1.7B"                         # 本地模型路径（填写后优先于 asr_model_id，如 C:/Users/.../Qwen3-ASR-1.7B）
+  aligner_local_path: "C:/Users/mumuer/qwen-asr/Qwen3-ForcedAligner-0.6B"                    # 本地 ForcedAligner 路径（填写后优先于 aligner_model_id；留空则不加载）
+
+  # ── 推理参数 ──
+  dtype: "bf16"                              # bf16 | fp16（老显卡用 fp16）
+  device: "cuda"                             # cuda | cpu
+  use_forced_aligner: false                  # 开启后多占 ~1.5GB 显存，耗时增加 ~20%
+
+# VAD 段后处理策略：不丢任何检测到的语音段（短语气词「嗯/对/啊」承载语义）
+# 流程：合并相邻 → 短段救援（强制并入最近邻居）→ 切分超长 → 兜底过滤(<0.2s)
+vad:
+  threshold: 0.5                             # Silero VAD 语音概率阈值
+  min_speech_duration: 0.2                   # 低于此长度视为 VAD 误触发，丢弃（唯一丢弃环节）
+  min_segment_length: 1.0                    # 短段救援的目标长度（不再是过滤阈值）
+  merge_gap: 0.5                             # 相邻段间隔小于此值则合并
+  max_segment_length: 30.0                   # VAD 段最大秒数（超过则强制切分）
+  overlap: 0.3                               # 段边界前后各扩展 overlap/2 秒，形成人为重叠区（供 Phase 2.6 使用）
+
+pipeline:
+  queue_size: 4                              # 生产者-消费者队列容量
+  retry_times: 3                             # 单段推理失败自动重试次数
+
+output:
+  formats: ["txt", "srt", "md"]             # 输出格式：txt / srt / md
+  srt_max_chars_per_line: 20                 # SRT 每行最大字符数
+  srt_max_duration: 5.0                      # SRT 每条最长秒数
+  output_dir: "./output"                     # 输出根目录
+
+download:
+  source: "hf-mirror"                        # hf | hf-mirror | modelscope | local | custom
+  custom_endpoint: ""                        # 自定义 HF 兼容 endpoint
+  cache_dir: "./models"                      # 模型缓存目录
