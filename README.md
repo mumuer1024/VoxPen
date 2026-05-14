@@ -1,4 +1,4 @@
-# VoxPen — Voice → Pen
+# VoxPen — Voice → Pen（🚧 开发中...）
 
 让声音落到纸上。
 
