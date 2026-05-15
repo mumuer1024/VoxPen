@@ -1,6 +1,6 @@
 # VoxPen v1 — 开发计划
 
-> 基于 PRD v1.1 和 references/ 参考实现。
+> 基于 PRD v1.5 和 references/ 参考实现。
 > 每 Phase 完成后暂停，等待人工确认再进入下一 Phase。
 
 ---
@@ -95,51 +95,63 @@ VoxPen/
 - 用户显式管理生命周期（不做单例/自动重载）；OOM 直接报错附诊断（不自动降级）
 - `tests/test_transcriber.py`：待用户在 venv 跑 pytest
 
-### Phase 2.3：顺序流水线 ⏳ 待开始
+### Phase 2.3：顺序流水线 ✅ 完成
 - `voxpen/pipeline.py`：VAD 段切片 + Transcriber 调用 + 重试 + 错误段标记 + 进度回调 + 取消信号
 - 输入：16kHz wav ndarray + 配置；输出：`List[TranscribedSegment]`
-- 不接 extractor（UI 层组合）、不做生产者-消费者并行（PRD v1.3 §2.5）
+- 不做生产者-消费者并行（PRD v1.5 §2.5）
+- `tests/test_pipeline.py`：13/13 通过
 
-### Phase 2.4：后处理 ⏳ 待开始
-- `postproc/merger.py`：段间拼接、重叠去重（LCS）
-- `postproc/formatter.py`：txt / srt / md 输出
+### Phase 2.4.1：Merger 模块 ✅ 完成
+- `voxpen/postproc/merger.py`：段合并 + 后缀-前缀子串去重 + 时间戳全局对齐 + 同步修剪
+- `tests/test_merger.py`：25/25 通过
 
-### Phase 2.5：模型下载 ⏳ 待开始
-- `asr/downloader.py`：多源下载（HF / hf-mirror / ModelScope / 本地 / 自定义）
+### Phase 2.4.2：Formatter 模块 ✅ 完成
+- `voxpen/postproc/formatter.py`：txt / srt / md 三种格式输出
+- 字幕行聚合规则：强标点优先 → 软兜底（弱标点）→ 硬截断
+- srt 无 Aligner 时禁用（抛 ValueError）
+- `tests/test_formatter.py`：19/19 通过
 
----
+### Phase 2.5：模型下载 ✅ 完成
+- `voxpen/asr/downloader.py`：5 个下载源（hf / hf-mirror / modelscope / local / custom）
+- 缓存检测 + 轻量校验 + 连通性测试（check_connectivity）
+- `tests/test_downloader.py`：23/23 通过
 
-## Phase 3：流水线编排 → 已合并到 Phase 2.3
+**Phase 2 测试覆盖**：87 个单元测试全部通过（Transcriber 7 + Pipeline 13 + Merger 25 + Formatter 19 + Downloader 23）
 
-（原 Phase 3 内容已合并到 Phase 2.3——顺序流水线 + 取消 + 回调一次到位，详见 PRD v1.3 §2.5。）
-
----
-
-## Phase 4：Gradio 界面
-- 4.1 主界面（文件上传、设置、进度、流式结果、下载）
-- 4.2 可复用组件
-- 4.3 首次启动引导
-- 4.4 流式回调集成
-
----
-
-## Phase 5：Launcher 启动器
-- 5.1 环境自检（每项支持"检测到已安装→跳过"）
-- 5.2 安装向导（每步复用已有；首步可指定本地模型路径）
-- 5.3 主窗口（系统托盘、启停、日志、设置）
-- 5.4 辅助脚本（download_ffmpeg / start.bat / install.bat / build_launcher）
+### Phase 2.6：说话人分离 ⏳ 待开始（明天实施）
+- `voxpen/diarizer/speaker_diarizer.py`：基于 pyannote.audio（候选）做说话人分离
+- 集成位置：VAD 之后、Transcriber 调用之前，给每段打上 speaker tag
+- 模型权重来源：ModelScope 镜像（绕过 HuggingFace token 门槛）
+- 详细设计（speaker tag 格式、UI 联动、加载/卸载策略）在 Phase 2.6 启动时讨论
+- 详见 PRD v1.5 §2.9
 
 ---
 
-## Phase 6：测试与收尾
-- 6.1 单元测试（test_config / test_extractor / test_downloader / test_vad / test_formatter / test_merger / test_pipeline）
-- 6.2 端到端手动场景（5 个）：
+## Phase 3：Gradio UI ⏳ 待开始
+- 3.1 主界面（文件上传、设置、进度、流式结果、下载）
+- 3.2 可复用组件（模型加载/卸载按钮、Aligner / Diarizer toggle）
+- 3.3 首次启动引导
+- 3.4 流式回调集成
+
+---
+
+## Phase 4：Launcher 启动器
+- 4.1 环境自检（每项支持"检测到已安装→跳过"）
+- 4.2 安装向导（每步复用已有；首步可指定本地模型路径）
+- 4.3 主窗口（系统托盘、启停、日志、设置）
+- 4.4 辅助脚本（download_ffmpeg / start.bat / install.bat / build_launcher）
+
+---
+
+## Phase 5：测试与收尾
+- 5.1 单元测试（test_config / test_extractor / test_downloader / test_vad / test_formatter / test_merger / test_pipeline）
+- 5.2 端到端手动场景（5 个）：
   1. 60 分钟视频不 OOM
   2. 低显存降级
   3. 取消任务
   4. 模型缺失提示
   5. ffmpeg 缺失提示
-- 6.3 README 完善
+- 5.3 README 完善
 
 ---
 
@@ -156,4 +168,4 @@ VoxPen/
 
 ---
 
-*最后更新: 2026-05-13*
+*最后更新: 2026-05-14*

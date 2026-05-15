@@ -13,6 +13,23 @@ VoxPen 是一个面向 Windows 用户的开箱即用长音频/视频转录工具
 - 🚀 **流式处理**：转一段显示一段，实时进度反馈
 - 🪟 **绿色便携**：Launcher 一键启动，不写注册表，不污染系统
 
+## 开发进度
+
+| 阶段 | 内容 | 状态 |
+|---|---|---|
+| Phase 1 | 项目骨架与基础设施 | ✅ 完成 |
+| Phase 2.0 | 音频提取 + VAD + 段处理 | ✅ 完成 |
+| Phase 2.1-2.2 | ASR 推理与封装 | ✅ 完成 |
+| Phase 2.3 | 顺序流水线 + 重试 + 取消 | ✅ 完成 |
+| Phase 2.4 | 后处理(合并 + 格式化输出) | ✅ 完成 |
+| Phase 2.5 | 多源模型下载 | ✅ 完成 |
+| Phase 2.6 | 说话人分离 | 🚧 即将开始 |
+| Phase 3 | Gradio UI | ⏳ 待开始 |
+| Phase 4 | PySide6 Launcher | ⏳ 待开始 |
+| Phase 5 | 测试与收尾 | ⏳ 待开始 |
+
+底层模块测试覆盖:**87 个单元测试全部通过**
+
 ## 系统要求
 
 | 项 | 要求 |
@@ -60,7 +77,6 @@ ffmpeg 采用 LGPL 许可。
 
 - [QwenLM/Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) — ASR 模型
 - [snakers4/silero-vad](https://github.com/snakers4/silero-vad) — VAD 模型
-- [Hmbown / DeepSeek-TUI](https://github.com/Hmbown/DeepSeek-TUI) —代码生成工具
 
 ## 开发者与工具
 

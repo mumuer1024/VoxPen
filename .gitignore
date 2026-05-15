@@ -69,5 +69,6 @@ htmlcov/
 references/qwen_asr_actual_api.txt
 
 # 其他不重要文件
-Phase-2.2-需求.md
+Phase-*-需求.md
 references/开发参考资料.md
+chat_export_*.md

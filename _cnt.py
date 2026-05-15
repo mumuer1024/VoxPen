@@ -1,0 +1,1 @@
+print(len(open(r"G:\AItools\VoxPen\PLAN.md", encoding="utf-8").readlines()))

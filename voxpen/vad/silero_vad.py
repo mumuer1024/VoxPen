@@ -81,7 +81,7 @@ class SileroVAD:
         """
         from silero_vad import get_speech_timestamps
 
-        wav_tensor = wav_tensor.float()
+        wav_tensor = wav_tensor.float().to(self.device)
 
         # Silero VAD 要求输入在 [-1, 1] 范围
         peak = wav_tensor.abs().max()
